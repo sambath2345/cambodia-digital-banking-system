@@ -1,0 +1,37 @@
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: ${DB_NAME:-db-cdbs}
+      POSTGRES_USER: ${DB_USERNAME:-kok}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - cdbs_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-kok} -d ${DB_NAME:-db-cdbs}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+  app:
+    build: .
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/${DB_NAME:-db-cdbs}
+      DB_USERNAME: ${DB_USERNAME:-kok}
+      DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      SPRING_PROFILES_ACTIVE: dev
+      FILE_UPLOAD_PATH: /app/uploads/
+      FILE_UPLOAD_BASE_URI: http://localhost:8888/server/image/
+    ports:
+      - "8888:8888"
+    volumes:
+      - cdbs_uploads:/app/uploads
+volumes:
+  cdbs_pgdata:
+  cdbs_uploads:

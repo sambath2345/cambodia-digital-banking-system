@@ -1,0 +1,41 @@
+services:
+  postgres:
+    image: postgres:17
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:?Set DB_NAME}
+      POSTGRES_USER: ${DB_USERNAME:?Set DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD}
+    volumes:
+      - cdbs_prod_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+
+#  app:
+#    build: .
+#    restart: unless-stopped
+#    depends_on:
+#      postgres:
+#        condition: service_healthy
+#    environment:
+#      SPRING_PROFILES_ACTIVE: prod
+#      SERVER_PORT: 8888
+#      DB_URL: jdbc:postgresql://postgres:5432/${DB_NAME:?Set DB_NAME}
+#      DB_USERNAME: ${DB_USERNAME:?Set DB_USERNAME}
+#      DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD}
+#      FILE_UPLOAD_PATH: /app/uploads/
+#      FILE_UPLOAD_BASE_URI: ${FILE_UPLOAD_BASE_URI:?Set FILE_UPLOAD_BASE_URI}
+#      MAIL_USERNAME: ${MAIL_USERNAME:-}
+#      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+#    ports:
+#      - "8888:8888"
+#    volumes:
+#      - cdbs_prod_uploads:/app/uploads
+
+volumes:
+  cdbs_prod_pgdata:
+  cdbs_prod_uploads:
+  
